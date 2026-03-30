@@ -61,7 +61,8 @@ public class FuncionarioTercerizadoTeste {
 
       ft.setHorasTrabalhadas(horasTrabalhadas);
       ft.setValorHora(valorHora);
-      double salarioRecebido = f.calcularPagamento();
+      ft.setDespesasAdicionais(despesasAdicionais);
+      double salarioRecebido = ft.calcularPagamento();
 
       assertEquals(valorEsperado, salarioRecebido);
     }
