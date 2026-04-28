@@ -1,199 +1,94 @@
-package org.iftm.gerenciadorveterinarios.repositories;
+package br.edu.testes.tdd.entities;
 
-import java.math.BigDecimal;
-import java.util.List;
-
-import org.iftm.gerenciadorveterinarios.entities.Veterinario;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
+public class FuncionarioTercerizadoTeste {
+     private FuncionarioTercerizado ft;
+    @BeforeEach
+    public  void setup(){
+      String nome = "Leonardo";
+      ft = new FuncionarioTercerizado(nome);
+    }
 
-@DataJpaTest
-public class VeterinarioRepositoryTest {
-
-
-    @Autowired
-    private VeterinarioRepository repository;
 
     @Test
-    public void testeBuscarVeterinarioComIdExistenteCorretamente(){
-    
-        int idExistente = 1;
-        String nomeEsperado = "Conceição Evaristo";
-        String emailEsperado = "conceicao@gmail.com";
+    public void testeCalcularSalarioAbaixoDoMinimoComDespesas(){
+      int horasTrabalhadas = 5;
+      double valorHora = 50.00;
+      double despesasAdicionais = 2.00;
+      double valorIncorreto = 998.00;
+      String mensagemEsperada = "Salario abaixo do minimo";
 
+      ft.setHorasTrabalhadas(horasTrabalhadas);
+      ft.setValorHora(valorHora);
+      ft.setDespesasAdicionais(despesasAdicionais);
+
+      IllegalArgumentException erro = assertThrows(IllegalArgumentException.class,() ->{
+        ft.calcularPagamento();
+      });
  
-       Veterinario veterinarioEncontrado = repository.getById(idExistente);
-
-  
-       assertNotNull(veterinarioEncontrado);
-       assertEquals(nomeEsperado, veterinarioEncontrado.getNome());
-       assertEquals(emailEsperado, veterinarioEncontrado.getEmail());
-
+      assertEquals(mensagemEsperada, erro.getMessage());
     }
 
     @Test
-    public void testeBuscaDeVeterinarioExistentePeloNomeMinusculoSemCaseSensentiveDeveFalhar(){
+    public void testeCalcularSalarioAcimaDoPermitidoComDespesas(){
+      int horasTrabalhadas = 40;
+      double valorHora = 80.00;
+      double despesasAdicionais = 0;
+      double valorIncorreto = 12800.00;
+      String mensagemEsperada = "Salario acima do permitido";
 
-        String nomeEsperado = "marcos oliveira";
+      ft.setHorasTrabalhadas(horasTrabalhadas);
+      ft.setValorHora(valorHora);
+      ft.setDespesasAdicionais(despesasAdicionais);
 
-        int quantidadeEsperada = 0;
-
-        List<Veterinario> veterinarioExistentes = repository.findByNome(nomeEsperado);
-        int quantidadeExistente = veterinarioExistentes.size();
-
-       assertNotNull(veterinarioExistentes);
-       assertEquals(quantidadeEsperada, quantidadeExistente);
-
-    }
-
-    @Test
-    public void testeBuscaDeVeterinarioExistentePeloNomeMaiusculoSemCaseSensentiveDeveFalhar(){
-
-        String nomeEsperado = "MARCOS OLIVEIRA";
-        int quantidadeEsperada = 0;
-
-        List<Veterinario> veterinarioExistentes = repository.findByNome(nomeEsperado);
-        int quantidadeExistente = veterinarioExistentes.size();
-
-       assertNotNull(veterinarioExistentes);
-       assertEquals(quantidadeEsperada, quantidadeExistente);
+      IllegalArgumentException erro = assertThrows(IllegalArgumentException.class,() ->{
+        ft.calcularPagamento();
+      });
  
+      assertEquals(mensagemEsperada, erro.getMessage());
+    }
+   
+    @Test
+    public void testarSalarioValidoComDespesas(){
+      int horasTrabalhadas = 40;
+      double valorHora = 50.00;
+      double despesasAdicionais = 500.00;
+      double valorEsperado = 7500.00;
+
+      ft.setHorasTrabalhadas(horasTrabalhadas);
+      ft.setValorHora(valorHora);
+      double salarioRecebido = ft.calcularPagamento();
+
+      assertEquals(valorEsperado, salarioRecebido);
+    }
+
+
+
+    @Test
+    public void testarSetDespesasAdicionaisAcimaDoLimite(){
+        double despesasAdicionais = 1500.00;
+        String mensagemEsperada = "Despesa adicional não pode ser acima de R$ 1000.00";
+
+        IllegalArgumentException erro = assertThrows(IllegalArgumentException.class, ()->{
+        ft.setDespesasAdicionais(despesasAdicionais);
+        });
+
+        assertEquals(mensagemEsperada, erro.getMessage());
     }
 
     @Test
-    public void testeBuscaDeVeterinarioNãoExistenteComCaseSensitiveDeveFalhar(){
+    public void testarSetDespesasAdicionaisNegativa(){
+        double despesasAdicionais = -1500.00;
+        String mensagemEsperada = "Despesa adicional não pode ser um número negativo";
 
-        String nomeEsperado = "giovanny morais";
-        int quantidadeEsperada = 0;
+        IllegalArgumentException erro = assertThrows(IllegalArgumentException.class, ()->{
+        ft.setDespesasAdicionais(despesasAdicionais);
+        });
 
-        List<Veterinario> veterinarioExistentes = repository.findByNome(nomeEsperado);
-        int quantidadeExistente = veterinarioExistentes.size();
-
-       assertNotNull(veterinarioExistentes);
-       assertEquals(quantidadeEsperada, quantidadeExistente);
-
+        assertEquals(mensagemEsperada, erro.getMessage());
     }
-
-    @Test
-    public void testeDeBuscaDeVeterinarioExistenteComCaseSensitive(){
-    String nomeEsperado = "amanDa RIbeiro" ;
-    int quantidadeEsperada = 1;
-
-    List<Veterinario> veterinarioExistentes = repository.findByNomeIgnoreCase(nomeEsperado);
-        int quantidadeExistente = veterinarioExistentes.size();
-
-       assertNotNull(veterinarioExistentes);
-       assertEquals(quantidadeEsperada, quantidadeExistente);
-
-    
-    }
-
-    @Test
-    public void testeDeBuscaDeNomePelaSilabaTesteDeveFalhar(){
-        String nomeExistente = "co";
- 
-        String nomeEsperado = "Conceição Evaristo";
-        String nomeEsperado2 = "Marcos Oliveira";
- 
-        List<Veterinario> veterinarioExistentes = repository.findByNomeContainsIgnoreCase(nomeExistente);
- 
-        assertNotNull(veterinarioExistentes);
- 
-        assertThrows(AssertionError.class, () -> assertEquals(nomeEsperado2, veterinarioExistentes));
-        assertThrows(AssertionError.class, () -> assertEquals(nomeEsperado, veterinarioExistentes));
-    }
-
-    @Test 
-    public void testeDeBuscaDoVeterinarioBrunoPelaSilaba(){
-        String nomeEsperado = "Bruno";
-        int quantidadeEsperada = 1;
-
-        List<Veterinario> veterinarioExistente = repository.findByNomeContainsIgnoreCase(nomeEsperado);
-        int quantidadeExistente = veterinarioExistente.size();
-    
-       assertNotNull(veterinarioExistente);
-       assertEquals(quantidadeEsperada, quantidadeExistente);
-
-    }
-
-    @Test
-    public void testeDeBuscaDeParametroComStringVazia(){
-        String nomeEsperado = "";
-
-        int quantidadeEsperada = 12;
-
-        List<Veterinario> veterinarioExistente = repository.findByNomeContainsIgnoreCase(nomeEsperado);
-        int quantidadeExistente = veterinarioExistente.size();
-    
-       assertNotNull(veterinarioExistente);
-       assertEquals(quantidadeEsperada, quantidadeExistente);
-
-    }
-
-    @Test
-    public void testeDeBuscaDeSalarioSuperiorAoValorInformado(){
-
-        Double SalarioEsperado = 3200.0;
-        int quantidadeEsperada = 11;
-
-        List<Veterinario> veterinarioExistente = repository.findBySalarioGreaterThan(BigDecimal.valueOf(SalarioEsperado));
-        int quantidadeExistente = veterinarioExistente.size();
-    
-       assertNotNull(veterinarioExistente);
-       assertEquals(quantidadeEsperada, quantidadeExistente);
-
-    }
-
-    @Test
-    public void testeDeBuscaDeSalarioInferiorAoValorInformado() {
-       
-        BigDecimal salarioReferencia = BigDecimal.valueOf(3000.0);
-        int quantidadeEsperada = 0;
- 
-        List<Veterinario> veterinariosEncontrados = repository.findBySalarioLessThan(salarioReferencia);
- 
-        // Assert
-        assertNotNull(veterinariosEncontrados);
-        assertEquals(quantidadeEsperada, veterinariosEncontrados.size());
-    }
-
-    @Test
-    public void testeDeBuscaSalarioEntreOsValorInformado(){
-
-        Double SalarioEsperado = 3000.0;
-        Double SalarioEsperado2 = 5000.0;
-
-        int quantidadeEsperada = 9;
-
-        List<Veterinario> veterinarioExistente = repository.findBySalarioBetween(BigDecimal.valueOf(SalarioEsperado),BigDecimal.valueOf(SalarioEsperado2));
-        int quantidadeExistente = veterinarioExistente.size();
-    
-       assertNotNull(veterinarioExistente);
-       assertEquals(quantidadeEsperada, quantidadeExistente);
-
-    }
-
-    @Test
-    public void testeValidaUpdate(){
-        int idSerAlterado = 1;
-        String nomeAlterado = "Leonardo";
-        BigDecimal  salarioAlterado = BigDecimal.valueOf(2800.0);
-        
-        Veterinario veterinarioExistente  = repository.findById(idSerAlterado).get();
-
-        veterinarioExistente.setNome(nomeAlterado);
-        veterinarioExistente.setSalario(salarioAlterado);
-
-        repository.save(veterinarioExistente);
-
-        assertEquals(nomeAlterado, veterinarioExistente.getNome());
-
-
-    }
-
 }
